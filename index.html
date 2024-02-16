@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://hv-camera-web-sg.s3-ap-southeast-1.amazonaws.com/hyperverge-web-sdk@8.1.0/src/sdk.min.js"></script>
+  </head>
+
+  <body>
+    <script>
+      let search = location?.search;
+
+      // the first char will most definitely be ?
+      search = search?.slice(1);
+
+      // split the search string (it will contain all the query params as string)
+      const splits = search?.split("&");
+
+      // required queries
+      const workflowIdQuery = splits?.find((split) =>
+        split?.startsWith("workflowId")
+      );
+      const accessTokenQuery = splits?.find((split) =>
+        split?.startsWith("accessToken")
+      );
+      const transactionIdQuery = splits?.find((split) =>
+        split?.startsWith("transactionId")
+      );
+
+      if (!workflowIdQuery) {
+        throw new Error("workflowId not provided");
+      }
+
+      if (!accessTokenQuery) {
+        throw new Error("accessToken not provided");
+      }
+
+      if (!transactionIdQuery) {
+        throw new Error("transactionId not provided");
+      }
+
+      const workFlowId = workflowIdQuery
+        ?.replace("workflowId=", "")
+        ?.trim()
+        ?.replace(/.\/$/, "");
+      const accessToken = accessTokenQuery
+        ?.replace("accessToken=", "")
+        ?.trim()
+        ?.replace(/.\/$/, "")
+        ?.replace("%20", " ");
+      const transactionId = transactionIdQuery
+        ?.replace("transactionId=", "")
+        ?.trim()
+        ?.replace(/.\/$/, "");
+
+      function startOnboarding() {
+        const hyperKycConfig = new HyperKycConfig(
+          accessToken,
+          workFlowId,
+          transactionId
+        );
+        HyperKYCModule.launch(hyperKycConfig, handler);
+      }
+      const handler = (HyperKycResult) => {
+        if (HyperKycResult.Cancelled) {
+          // user cancelled
+          console.log(HyperKycResult.Cancelled);
+        } else if (HyperKycResult.Failure) {
+          // failure
+          console.log(HyperKycResult.Failure);
+        } else if (HyperKycResult.Success) {
+          // success
+          console.log(HyperKycResult.Success);
+        }
+      };
+
+      // start process
+      startOnboarding();
+    </script>
+  </body>
+</html>
